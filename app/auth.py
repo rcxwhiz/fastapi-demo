@@ -11,7 +11,7 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 
 from app.db import DBSessionDep
-from app.models.users import PublicUser, User
+from app.models import PublicUser, User
 
 load_dotenv()
 
