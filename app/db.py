@@ -22,7 +22,5 @@ def get_db_session():
 DBSessionDep = Annotated[Session, Depends(get_db_session)]
 
 
-def register(app):
-    @app.on_event("startup")
-    def create_db_and_tables():
-        SQLModel.metadata.create_all(engine)
+def create_db_and_tables():
+    SQLModel.metadata.create_all(engine)

@@ -4,7 +4,7 @@ from typing import Annotated
 
 import jwt
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from passlib.context import CryptContext
@@ -96,22 +96,23 @@ async def get_current_active_user(
 
 CurrentActiveUserDep = Annotated[PublicUser, Depends(get_current_active_user)]
 
+router = APIRouter()
 
-def register(app: FastAPI) -> None:
-    @app.post("/token")
-    async def login_for_access_token(
-        form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-        db_session: DBSessionDep,
-    ) -> Token:
-        user = authenticate_user(form_data.username, form_data.password, db_session)
-        if user is None:
-            raise HTTPException(
-                status_code=401,
-                detail="Incorrect username or password",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        access_token_expires = timedelta(seconds=ACCESS_TOKEN_EXPIRE)
-        access_token = create_access_token(
-            data={"sub": user.username}, expires_delta=access_token_expires
+
+@router.post("/token")
+async def login_for_access_token(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    db_session: DBSessionDep,
+) -> Token:
+    user = authenticate_user(form_data.username, form_data.password, db_session)
+    if user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-        return Token(access_token=access_token, token_type="bearer")
+    access_token_expires = timedelta(seconds=ACCESS_TOKEN_EXPIRE)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    return Token(access_token=access_token, token_type="bearer")
